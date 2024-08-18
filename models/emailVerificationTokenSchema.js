@@ -27,4 +27,9 @@ emailVerificationTokenSchema.pre("save", async function (next) {
     next();
 });
 
+emailVerificationTokenSchema.methods.compareToken = async function (otp) {
+    const result = await bcrypt.compare(otp, this.token);
+    return result;
+};
+
 module.exports = mongoose.model('EmailVerificationToken', emailVerificationTokenSchema)
