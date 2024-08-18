@@ -6,9 +6,6 @@ const app = express();
 app.use(express.json())
 app.use("/api/user", userRouter);
 
-app.get("/about", (req, res) => {
-  res.send("<h1>Hello I am from your backend about</h1>");
-});
 
 const port = process.env.port || 5000
 app.listen(port, () => {
