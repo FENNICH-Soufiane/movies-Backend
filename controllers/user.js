@@ -16,11 +16,7 @@ exports.create = async (req, res) => {
 
 
     // generate 6 digit otp
-    let OTP = '';
-    for (let i = 0; i <= 5; i++) {
-      const randomVal = Math.round(Math.random() * 9)
-      OTP += randomVal;
-    }
+    let OTP = generateOTP()
 
     // store otp inside in db
     const newEmailVerificationToken = new emailVerificationToken({ owner: newUser._id, token: OTP });
@@ -121,11 +117,7 @@ exports.resendEmailVerificationToken = async (req, res) => {
     return res.json({ error: "Only after one hour you can request for another token!" });
 
   // generate 6 digit otp
-  let OTP = "";
-  for (let i = 1; i <= 5; i++) {
-    const randomVal = Math.round(Math.random() * 9);
-    OTP += randomVal;
-  }
+  let OTP = generateOTP()
 
   // store otp inside our db
   const newEmailVerificationToken = new emailVerificationToken({ owner: user._id, token: OTP })
