@@ -149,3 +149,16 @@ exports.resendEmailVerificationToken = async (req, res) => {
     message: "New OTP has been sent to your registered email accout.",
   });
 };
+
+exports.forgetPassword = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) return res.status(401).josn("email is missing!");
+
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).josn("User not found!")
+
+  const alreadyHasToken = await PasswordResetToken.findOne({ owner: user._id });
+  if (alreadyHasToken)
+    return res.status(401).josn("Only after one hour you can request for another token!")
+};
