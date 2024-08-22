@@ -1,7 +1,10 @@
 const { isValidObjectId } = require('mongoose');
 const emailVerificationToken = require('../models/emailVerificationTokenSchema');
 const User = require('../models/user');
-const nodemailer = require('nodemailer')
+const nodemailer = require('nodemailer');
+const passwordResetToken = require('../models/passwordResetToken');
+const { generateOTP, generateMailTransporter } = require('../utils/mail');
+const { generateRandomByte } = require('../utils/helper');
 
 exports.create = async (req, res) => {
   try {
@@ -97,10 +100,6 @@ exports.verifyEmail = async (req, res) => {
 
 }
 
-exports.resendEmailVerificationToken = () => {
-
-}
-
 exports.resendEmailVerificationToken = async (req, res) => {
   const { userId } = req.body;
 
@@ -156,9 +155,32 @@ exports.forgetPassword = async (req, res) => {
   if (!email) return res.status(401).josn("email is missing!");
 
   const user = await User.findOne({ email });
-  if (!user) return res.status(404).josn("User not found!")
+  if (!user) return res.status(404).json("User not found!")
 
-  const alreadyHasToken = await PasswordResetToken.findOne({ owner: user._id });
+  const alreadyHasToken = await passwordResetToken.findOne({ owner: user._id });
   if (alreadyHasToken)
-    return res.status(401).josn("Only after one hour you can request for another token!")
+    return res.status(401).json("Only after one hour you can request for another token!");
+
+  const token = await generateRandomByte();
+  const newPasswordResetToken = await passwordResetToken({
+    owner: user._id,
+    token,
+  });
+  await newPasswordResetToken.save();
+
+  const resetPasswordUrl = `http://localhost:3000/reset-password?token=${token}&id=${user._id}`;
+
+  const transport = generateMailTransporter();
+
+  transport.sendMail({
+    from: "fennich0011soufiane@gmail.com",
+    to: user.email,
+    subject: "Reset Password Link",
+    html: `
+      <p>Click here to reset password</p>
+      <a href='${resetPasswordUrl}'>Change Password</a>
+    `,
+  });
+
+  res.json({ message: "Link sent to your email!" });
 };
