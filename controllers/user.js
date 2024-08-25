@@ -50,7 +50,12 @@ exports.create = async (req, res) => {
       if (error) {
         return res.status(500).send({ message: 'Erreur lors de l\'envoi de l\'email' });
       }
-      res.status(201).json({ message: 'Please verify you email. OTP has been sent to your email account!' });
+      res.status(201).json({ user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email
+      },
+      message: 'Please verify you email. OTP has been sent to your email account!' });
     });
 
   } catch (error) {
