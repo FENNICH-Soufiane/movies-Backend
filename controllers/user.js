@@ -23,6 +23,7 @@ exports.create = async (req, res) => {
 
     // store otp inside in db
     const newEmailVerificationToken = new emailVerificationToken({ owner: newUser._id, token: OTP });
+    console.log(newEmailVerificationToken);
 
     await newEmailVerificationToken.save();
 
@@ -50,12 +51,14 @@ exports.create = async (req, res) => {
       if (error) {
         return res.status(500).send({ message: 'Erreur lors de l\'envoi de l\'email' });
       }
-      res.status(201).json({ user: {
-        id: newUser._id,
-        name: newUser.name,
-        email: newUser.email
-      },
-      message: 'Please verify you email. OTP has been sent to your email account!' });
+      res.status(201).json({
+        user: {
+          id: newUser._id,
+          name: newUser.name,
+          email: newUser.email
+        },
+        message: 'Please verify you email. OTP has been sent to your email account!'
+      });
     });
 
   } catch (error) {
@@ -75,6 +78,7 @@ exports.verifyEmail = async (req, res) => {
   if (user.isVerified) return res.json({ error: "user is already verified!" })
 
   const token = await emailVerificationToken.findOne({ owner: userId })
+  console.log(token);
   if (!token) return res.json({ error: 'token not found!' });
 
   const isMatched = await token.compareToken(OTP)
@@ -101,7 +105,8 @@ exports.verifyEmail = async (req, res) => {
     html: '<h1>Welcome to our app and thanks for choosing us.</h1>'
   })
 
-  res.json({ message: "Your email is verified." })
+  const jwtToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET)
+  res.json({ user: { id: user._id, name: user.name, email: user.email, token: jwtToken }, message: "Your email is verified." })
 
 }
 
@@ -191,7 +196,7 @@ exports.forgetPassword = async (req, res) => {
 };
 
 exports.sendResetPasswordTokenStatus = (req, res) => {
-  res.json({valid: true})
+  res.json({ valid: true })
 }
 
 exports.resetPassword = async (req, res) => {
